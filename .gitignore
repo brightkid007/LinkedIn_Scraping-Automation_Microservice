@@ -1,3 +1,4 @@
 *.json
 .venv/
 __pyache__/
+encoded_creds.txt
