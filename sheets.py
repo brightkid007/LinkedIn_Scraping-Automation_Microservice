@@ -44,13 +44,17 @@ def write_sheet(sheet, employeeSearchResultList, employeeContactInfoList):
         last_name = employeeSearchResult.get("last_name")
         full_name = employeeSearchResult.get("full_name")
         type = employeeSearchResult.get("type")
-        emails = employeeContactInfo.get("emails")
-        phones = employeeContactInfo.get("phones")
+        emails = "\n".join([email.get("email", "N/A") for email in employeeContactInfo.get("emails", [])])
+        # emails = employeeContactInfo.get("emails")
+        # emails_status = employeeContactInfo.get("")
+        emails_status = "\n".join([email.get("status", "N/A") for email in employeeContactInfo.get("emails", [])])
+        # phones = employeeContactInfo.get("phones")
+        phones = "\n".join([phone.get("number", "N/A") for phone in employeeContactInfo.get("phones", [])])
 
         try:
             data = [
                 [job_subject, company_url, company_name, linkedin_url, headline, country, first_name, last_name, full_name, \
-                 type, emails, phones]
+                 type, emails, emails_status, phones]
             ]
 
             next_row = get_next_available_row(sheet)
