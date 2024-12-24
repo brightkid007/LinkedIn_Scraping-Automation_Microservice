@@ -32,9 +32,9 @@ app.add_middleware(
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/test")
-def test():
-    print("OK")
+@app.post("/test")
+def test(data: FormData):
+    return {"Test": data}
 
 @app.post("/employees")
 async def get_employeeInfo(data: FormData):
