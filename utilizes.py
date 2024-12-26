@@ -6,7 +6,7 @@ import httpx
 from typing import List
 from models import *
 
-proxycurl = Proxycurl()
+proxycurl = Proxycurl(api_key="CoQVnUVE23BMtzq4-_8e_w")
 
 async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keyword: str):
     
