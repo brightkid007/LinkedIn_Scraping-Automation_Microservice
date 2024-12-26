@@ -14,7 +14,7 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
         *(proxycurl.linkedin.company.employee_search(
             keyword_regex=keyword.replace(' ', '|'),
             linkedin_company_profile_url=company.companyURL,
-            page_size='1',
+            page_size='15',
             country=country,
         ) for company in companyList)
     )
@@ -23,7 +23,7 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
         employeeSearch["companyURL"] = company.companyURL
         employeeSearch["type"] = company.companyType
     
-    print(employeeSearchList)
+    # print(employeeSearchList)
 
     file_path = "employeeSearchList.json"
     with open(file_path, "w", encoding="utf-8") as json_file:
@@ -49,7 +49,7 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
     with open(file_path, "w", encoding="utf-8") as json_file:
         json.dump(employeeSearchResultList, json_file, indent=4, ensure_ascii=False)
         print(f"Final Employee search list successfully saved to {file_path}")
-    print(employeeSearchResultList)
+    # print(employeeSearchResultList)
 
     return employeeSearchResultList
 
@@ -131,14 +131,14 @@ async def fullenrich_bulk_request(employee: EmployeeResultForm):
         # "webhook_url": "https://example.com/webhook",
         "datas": [
             {
-                # "firstname": employee.get("first_name", ""),
-                # "lastname": employee.get("last_name", ""),
-                # "company_name": employee.get("company_name", ""),
-                # "linkedin_url": employee.get("linkedinURL", ""),
-                "firstname": employee.first_name,
-                "lastname": employee.last_name,
-                "company_name": employee.company_name,
-                "linkedin_url": employee.linkedinURL,
+                "firstname": employee.get("first_name", ""),
+                "lastname": employee.get("last_name", ""),
+                "company_name": employee.get("company_name", ""),
+                "linkedin_url": employee.get("linkedinURL", ""),
+                # "firstname": employee.first_name,
+                # "lastname": employee.last_name,
+                # "company_name": employee.company_name,
+                # "linkedin_url": employee.linkedinURL,
                 "enrich_fields": ["contact.emails", "contact.phones"],
             }
         ]
