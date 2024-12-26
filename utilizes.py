@@ -22,6 +22,8 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
     for employeeSearch, company in zip(employeeSearchList, companyList):
         employeeSearch["companyURL"] = company.companyURL
         employeeSearch["type"] = company.companyType
+    
+    print(employeeSearchList)
 
     file_path = "employeeSearchList.json"
     with open(file_path, "w", encoding="utf-8") as json_file:
@@ -40,6 +42,8 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
 
     employeeSearchResultList = await asyncio.gather(*concurrent_process)
     employeeSearchResultList = [e for e in employeeSearchResultList if e is not None]
+
+    print(employeeSearchResultList)
 
     file_path = "employeeSearchResultList.json"
     with open(file_path, "w", encoding="utf-8") as json_file:
