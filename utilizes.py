@@ -58,6 +58,10 @@ async def type_filter_employee(employeeProfileURL: str, employeeSearchType: str,
         companyURL = normalize_url(companyURL)
         employeeProfile = await proxycurl.linkedin.person.get(linkedin_profile_url=employeeProfileURL)
 
+        if not employeeProfile:
+            print(f"No employee profile found for URL: {employeeProfileURL}")
+            return None
+
         experiences = employeeProfile.get("experiences", [])
         employeeType = "current" if is_current_type(experiences=experiences, companyURL=companyURL) else "former"
 
