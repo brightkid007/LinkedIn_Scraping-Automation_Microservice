@@ -8,7 +8,7 @@ from models import *
 
 proxycurl = Proxycurl(api_key="CoQVnUVE23BMtzq4-_8e_w")
 
-async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keyword: str):
+async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keyword: str, projectNumber: str, subject: str):
     
     employeeSearchList = await asyncio.gather(
         *(proxycurl.linkedin.company.employee_search(
@@ -35,7 +35,8 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
             employeeProfileURL=employee.get("profile_url"),
             employeeSearchType=employeeSearch.get("type"),
             companyURL=employeeSearch.get("companyURL"),
-            subject=keyword
+            projectNumber=projectNumber,
+            subject=subject
         )
         for employeeSearch in employeeSearchList for employee in employeeSearch.get("employees", [])
     ]
@@ -53,7 +54,7 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
 
     return employeeSearchResultList
 
-async def type_filter_employee(employeeProfileURL: str, employeeSearchType: str, companyURL: str, subject: str):
+async def type_filter_employee(employeeProfileURL: str, employeeSearchType: str, companyURL: str, projectNumber: str, subject: str):
     try:
         companyURL = normalize_url(companyURL)
         employeeProfile = await proxycurl.linkedin.person.get(linkedin_profile_url=employeeProfileURL)
@@ -78,6 +79,7 @@ async def type_filter_employee(employeeProfileURL: str, employeeSearchType: str,
             #     url=companyURL
             # )
             return {
+                "project_number": projectNumber,
                 "project_subject": subject,
                 "companyURL": companyURL,
                 "company_name": companyProfile.get("name"),

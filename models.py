@@ -7,11 +7,14 @@ class CompanyPair(BaseModel):
 
 class FormData(BaseModel):
     email: str
+    projectNumber: str
     subject: str
+    title: str
     selectedCountries: str
     companyPairs: List[CompanyPair]
 
 class EmployeeResultForm(BaseModel):
+    project_number: str
     project_subject: str
     companyURL: str
     company_name: str

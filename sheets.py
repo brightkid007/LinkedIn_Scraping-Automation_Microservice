@@ -32,14 +32,15 @@ def init_sheet(spreadsheet):
         sheet = spreadsheet.worksheet("Employee Results")
     except:
         sheet = spreadsheet.add_worksheet(title="Employee Results", rows="9999", cols="26")
-    headers = [["Job Subject", "Company URL", "Company Name", "LinkedIn URL", "Headline", "Country", \
+    headers = [["Project Number", "Project Subject", "Company URL", "Company Name", "LinkedIn URL", "Headline", "Country", \
                 "First Name", "Last Name", "Full Name", "Type", "Contact Email", "Email Status", "Phone Number"]]
-    sheet.update(values=headers, range_name='A1:M1')
+    sheet.update(values=headers, range_name='A1:N1')
     return sheet
 
 def write_sheet(sheet, employeeSearchResultList, employeeContactInfoList):
     for employeeSearchResult, employeeContactInfo in zip(employeeSearchResultList, employeeContactInfoList):
-        job_subject = employeeSearchResult.get("project_subject")
+        project_number = employeeSearchResult.get("project_number")
+        project_subject = employeeSearchResult.get("project_subject")
         company_url = employeeSearchResult.get("companyURL")
         company_name = employeeSearchResult.get("company_name")
         linkedin_url = employeeSearchResult.get("linkedinURL")
@@ -58,12 +59,12 @@ def write_sheet(sheet, employeeSearchResultList, employeeContactInfoList):
 
         try:
             data = [
-                [job_subject, company_url, company_name, linkedin_url, headline, country, first_name, last_name, full_name, \
+                [project_number, project_subject, company_url, company_name, linkedin_url, headline, country, first_name, last_name, full_name, \
                  type, emails, emails_status, phones]
             ]
 
             next_row = get_next_available_row(sheet)
-            range_name = f'A{next_row}:M{next_row}'
+            range_name = f'A{next_row}:N{next_row}'
 
             sheet.update(values=data, range_name=range_name)
 

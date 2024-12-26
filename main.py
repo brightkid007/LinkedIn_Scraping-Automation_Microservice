@@ -41,15 +41,25 @@ def test():
 @app.post("/employees")
 async def get_employeeInfo(data: FormData):
     mail = data.email
+    projectNumber = data.projectNumber
     subject = data.subject
+    title = data.title
     country = data.selectedCountries.lower()
     companyList = data.companyPairs
 
     print(mail)
+    print(projectNumber)
     print(subject)
+    print(title)
     print(country)
 
-    employeeSearchResultList = await utz.fetch_employeeInfo(companyList=companyList, country=country, keyword=subject)
+    employeeSearchResultList = await utz.fetch_employeeInfo(
+        companyList=companyList, 
+        country=country, 
+        keyword=title, 
+        projectNumber=projectNumber,
+        subject=subject
+    )
 
     spreadsheet = sht.auth_sheet()
     sheet = sht.init_sheet(spreadsheet)
