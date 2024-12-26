@@ -131,10 +131,14 @@ async def fullenrich_bulk_request(employee: EmployeeResultForm):
         # "webhook_url": "https://example.com/webhook",
         "datas": [
             {
-                "firstname": employee.get("first_name", ""),
-                "lastname": employee.get("last_name", ""),
-                "company_name": employee.get("company_name", ""),
-                "linkedin_url": employee.get("linkedinURL", ""),
+                # "firstname": employee.get("first_name", ""),
+                # "lastname": employee.get("last_name", ""),
+                # "company_name": employee.get("company_name", ""),
+                # "linkedin_url": employee.get("linkedinURL", ""),
+                "firstname": employee.first_name,
+                "lastname": employee.last_name,
+                "company_name": employee.company_name,
+                "linkedin_url": employee.linkedinURL,
                 "enrich_fields": ["contact.emails", "contact.phones"],
             }
         ]
