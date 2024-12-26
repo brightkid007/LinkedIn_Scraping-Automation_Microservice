@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from typing import List, Any, Optional, Dict
 from fastapi.middleware.cors import CORSMiddleware
-import json
+import json, sys
 
 import requests
 
@@ -36,6 +36,10 @@ def read_root():
 @app.post("/test")
 def test(data: FormData):
     return {"Test": data}
+
+@app.get("/package-location")
+def get_package_location():
+    return {"paths": sys.path}
 
 @app.post("/employees")
 async def get_employeeInfo(data: FormData):
