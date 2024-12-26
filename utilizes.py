@@ -14,7 +14,7 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
         *(proxycurl.linkedin.company.employee_search(
             keyword_regex=keyword.replace(' ', '|'),
             linkedin_company_profile_url=company.companyURL,
-            page_size='20',
+            page_size='1',
             country=country,
         ) for company in companyList)
     )
@@ -45,6 +45,7 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
     with open(file_path, "w", encoding="utf-8") as json_file:
         json.dump(employeeSearchResultList, json_file, indent=4, ensure_ascii=False)
         print(f"Final Employee search list successfully saved to {file_path}")
+    print(employeeSearchResultList)
 
     return employeeSearchResultList
 
@@ -136,7 +137,7 @@ async def fullenrich_bulk_request(employee: EmployeeResultForm):
     }
     async with httpx.AsyncClient() as client:
         response = await client.post(bulk_url, json=payload, headers=headers)
-        print(response.json())
+        # print(response.json())
         enrichment_id = response.json().get("enrichment_id")
         if not enrichment_id:
             raise ValueError("Enrichment ID not found in response")
