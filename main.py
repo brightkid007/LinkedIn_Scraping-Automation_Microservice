@@ -33,7 +33,7 @@ app.add_middleware(
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/test")
+@app.post("/test")
 def test():
     spreadsheet = sht.auth_sheet()
     sheet = sht.init_sheet(spreadsheet)
