@@ -12,7 +12,7 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
     
     employeeSearchList = await asyncio.gather(
         *(proxycurl.linkedin.company.employee_search(
-            keyword_regex=keyword.replace(' ', '|'),
+            keyword_regex=keyword.replace(' ', '|').lower(),
             linkedin_company_profile_url=company.companyURL,
             page_size='10',
             country=country,
