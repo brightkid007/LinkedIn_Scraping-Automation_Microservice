@@ -44,6 +44,12 @@ async def get_employeeInfo(data: FormData):
     country = data.selectedCountries.lower()
     companyList = data.companyPairs
 
+    print(mail)
+    print(subject)
+    print(country)
+
+    return {"Here": "TEST"}
+
     employeeSearchResultList = await utz.fetch_employeeInfo(companyList=companyList, country=country, keyword=subject)
 
     spreadsheet = sht.auth_sheet()
