@@ -35,6 +35,7 @@ def init_sheet(spreadsheet):
     headers = [["Job Subject", "Company URL", "Company Name", "LinkedIn URL", "Headline", "Country", \
                 "First Name", "Last Name", "Full Name", "Type", "Contact Email", "Email Status", "Phone Number"]]
     sheet.update(values=headers, range_name='A1:M1')
+    return sheet
 
 def write_sheet(sheet, employeeSearchResultList, employeeContactInfoList):
     for employeeSearchResult, employeeContactInfo in zip(employeeSearchResultList, employeeContactInfoList):
