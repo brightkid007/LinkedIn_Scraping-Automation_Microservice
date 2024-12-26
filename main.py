@@ -37,10 +37,6 @@ def read_root():
 def test(data: FormData):
     return {"Test": data}
 
-@app.post("/package-location")
-def get_package_location(data: FormData):
-    return {"paths": sys.path}
-
 @app.post("/employees")
 async def get_employeeInfo(data: FormData):
     mail = data.email
