@@ -33,9 +33,10 @@ app.add_middleware(
 def read_root():
     return {"Hello": "World"}
 
-@app.post("/test")
-def test(data: FormData):
-    return {"Test": data}
+@app.get("/test")
+def test():
+    spreadsheet = sht.auth_sheet()
+    sheet = sht.init_sheet(spreadsheet)
 
 @app.post("/employees")
 async def get_employeeInfo(data: FormData):
