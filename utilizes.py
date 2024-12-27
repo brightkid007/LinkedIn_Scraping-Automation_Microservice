@@ -14,7 +14,7 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
         *(proxycurl.linkedin.company.employee_search(
             keyword_regex=keyword.replace(' ', '|').lower(),
             linkedin_company_profile_url=company.companyURL,
-            page_size='15',
+            page_size='5',
             country=country,
         ) for company in companyList)
     )
