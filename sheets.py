@@ -1,8 +1,13 @@
+from dotenv import load_dotenv
+import os
+
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2.service_account import Credentials
 
 import os, json, base64
+
+load_dotenv()
 
 def auth_sheet():
     # scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]

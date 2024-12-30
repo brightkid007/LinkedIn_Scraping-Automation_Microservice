@@ -8,14 +8,23 @@ from models import *
 
 proxycurl = Proxycurl(api_key="CoQVnUVE23BMtzq4-_8e_w")
 
-async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keyword: str, projectNumber: str, subject: str):
+async def fetch_employeeInfo(companyList: List[CompanyPair], countryList: List[str], keyword: str, projectNumber: str, subject: str):
     
+    # employeeSearchList = await asyncio.gather(
+    #     *(proxycurl.linkedin.company.employee_search(
+    #         keyword_regex=keyword.replace(' ', '|').lower(),
+    #         linkedin_company_profile_url=company.companyURL,
+    #         page_size='5',
+    #         country=country,
+    #     ) for company in companyList)
+    # )
+
     employeeSearchList = await asyncio.gather(
-        *(proxycurl.linkedin.company.employee_search(
-            keyword_regex=keyword.replace(' ', '|').lower(),
-            linkedin_company_profile_url=company.companyURL,
-            page_size='5',
-            country=country,
+        *(proxycurl.linkedin.company.employee_list(
+            url=company.companyURL,
+            country=','.join(countryList),
+            role_search=keyword.replace(' ', '||').lower(),
+            page_size='1',
         ) for company in companyList)
     )
 
@@ -57,7 +66,10 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], country: str, keywo
 async def type_filter_employee(employeeProfileURL: str, employeeSearchType: str, companyURL: str, projectNumber: str, subject: str):
     try:
         companyURL = normalize_url(companyURL)
-        employeeProfile = await proxycurl.linkedin.person.get(linkedin_profile_url=employeeProfileURL)
+        employeeProfile = await proxycurl.linkedin.person.get(
+            linkedin_profile_url = employeeProfileURL,
+            use_cache = 'if-present'
+        )
 
         if not employeeProfile:
             print(f"No employee profile found for URL: {employeeProfileURL}")
@@ -68,7 +80,10 @@ async def type_filter_employee(employeeProfileURL: str, employeeSearchType: str,
 
         if employeeSearchType == "both" or employeeSearchType == employeeType:
             try:
-                companyProfile = await proxycurl.linkedin.company.get(url=companyURL)
+                companyProfile = await proxycurl.linkedin.company.get(
+                    url = companyURL,
+                    use_cache = 'if-present'
+                )
                 if not companyProfile:
                     print(f"Company profile not found for URL: {companyURL}")
                     return None

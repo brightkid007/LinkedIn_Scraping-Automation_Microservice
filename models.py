@@ -10,7 +10,7 @@ class FormData(BaseModel):
     projectNumber: str
     subject: str
     title: str
-    selectedCountries: str
+    selectedCountries: List[str]
     companyPairs: List[CompanyPair]
 
 class EmployeeResultForm(BaseModel):

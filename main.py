@@ -44,18 +44,18 @@ async def get_employeeInfo(data: FormData):
     projectNumber = data.projectNumber
     subject = data.subject
     title = data.title
-    country = data.selectedCountries.lower()
+    countryList = [country.lower() for country in data.selectedCountries]
     companyList = data.companyPairs
 
     print(mail)
     print(projectNumber)
     print(subject)
     print(title)
-    print(country)
+    print(countryList)
 
     employeeSearchResultList = await utz.fetch_employeeInfo(
         companyList=companyList, 
-        country=country, 
+        countryList=countryList, 
         keyword=title, 
         projectNumber=projectNumber,
         subject=subject
