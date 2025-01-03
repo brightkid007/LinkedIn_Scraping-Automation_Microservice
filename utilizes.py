@@ -24,7 +24,7 @@ async def fetch_employeeInfo(companyList: List[CompanyPair], countryList: List[s
             url=company.companyURL,
             country=','.join(countryList),
             role_search=keyword.replace(' ', '||').lower(),
-            page_size='1',
+            page_size='10',
         ) for company in companyList)
     )
 
