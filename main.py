@@ -47,11 +47,11 @@ async def get_employeeInfo(data: FormData):
     countryList = [country.lower() for country in data.selectedCountries]
     companyList = data.companyPairs
 
-    print(mail)
-    print(projectNumber)
-    print(subject)
-    print(title)
-    print(countryList)
+    # print(mail)
+    # print(projectNumber)
+    # print(subject)
+    # print(title)
+    # print(countryList)
 
     employeeSearchResultList = await utz.fetch_employeeInfo(
         companyList=companyList, 

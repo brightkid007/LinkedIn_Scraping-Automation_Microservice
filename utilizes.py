@@ -131,15 +131,32 @@ def is_current_type(experiences, companyURL):
 def normalize_url(url):
     return re.sub(r"/$", "", url) if url else None
 
-async def get_contactInfo(employeeSearchResultList: List[EmployeeResultForm]):
-    employeeContactInfoList = await asyncio.gather(
-        *(fullenrich_bulk_request(employee=employee)
-        for employee in employeeSearchResultList)
-    )
-    print(employeeContactInfoList)
-    return employeeContactInfoList
+MAX_RETRIES = 5
+SEMAPHORE_LIMIT = 22  # Adjust based on API documentation or experimentation
 
-    
+semaphore = asyncio.Semaphore(SEMAPHORE_LIMIT)
+
+
+async def get_contactInfo(employeeSearchResultList: List[EmployeeResultForm]):
+    async def process_employee(employee):
+        async with semaphore:
+            return await fullenrich_bulk_request(employee)
+
+    employeeContactInfoList = await asyncio.gather(
+        *(process_employee(employee) for employee in employeeSearchResultList),
+        return_exceptions=True  # Avoid breaking `gather` on individual errors
+    )
+
+    # Handle exceptions and log them
+    results = []
+    for result in employeeContactInfoList:
+        if isinstance(result, Exception):
+            print(f"Error processing employee: {result}")
+        else:
+            results.append(result)
+
+    return results
+
 
 async def fullenrich_bulk_request(employee: EmployeeResultForm):
     bulk_url = "https://app.fullenrich.com/api/v1/contact/enrich/bulk"
@@ -149,62 +166,150 @@ async def fullenrich_bulk_request(employee: EmployeeResultForm):
     }
     payload = {
         "name": "LinkedIn Employee ContactInfo",
-        # "webhook_url": "https://example.com/webhook",
         "datas": [
             {
                 "firstname": employee.get("first_name", ""),
                 "lastname": employee.get("last_name", ""),
                 "company_name": employee.get("company_name", ""),
                 "linkedin_url": employee.get("linkedinURL", ""),
-                # "firstname": employee.first_name,
-                # "lastname": employee.last_name,
-                # "company_name": employee.company_name,
-                # "linkedin_url": employee.linkedinURL,
                 "enrich_fields": ["contact.emails", "contact.phones"],
             }
         ]
     }
+
     async with httpx.AsyncClient() as client:
-        response = await client.post(bulk_url, json=payload, headers=headers)
-        # print(response.json())
-        enrichment_id = response.json().get("enrichment_id")
-        if not enrichment_id:
-            raise ValueError("Enrichment ID not found in response")
-        print(enrichment_id)
+        for attempt in range(MAX_RETRIES):
+            try:
+                response = await client.post(bulk_url, json=payload, headers=headers)
+                response.raise_for_status()
+                enrichment_id = response.json().get("enrichment_id")
+                if not enrichment_id:
+                    raise ValueError("Enrichment ID not found in response")
+                return await wait_for_completion(enrichment_id)
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:  # Handle rate limit
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                else:
+                    raise
+            except Exception as e:
+                print(f"Error in fullenrich_bulk_request: {e}")
+                raise
 
-        response = await wait_for_completion(enrichment_id=enrichment_id)
-        print("Here is response: ", response)
-        datas = response.get("datas", [])
-        print("Data: ", datas)
-
-        for data in datas:
-            contact_info = data.get("contact", {})
-            emails = contact_info.get("emails", [])
-            phones = contact_info.get("phones", [])
-            return { 
-                "emails": emails,
-                "phones": phones
-            }
 
 async def wait_for_completion(enrichment_id, interval=5):
-    while True:
-        data = await fetch_status(enrichment_id)
-        status = data.get("status")
-        print(f"Current status: {status}")
-        
-        if status == "FINISHED":
-            print("Process finished successfully: ", data)
-            return data  # Return the final data
-        
-        if status in {"CANCELED", "CREDITS_INSUFFICIENT", "RATE_LIMIT", "UNKNOWN"}:
-            raise RuntimeError(f"Process failed with status: {status}")
-        
-        await asyncio.sleep(interval)
+    for attempt in range(MAX_RETRIES):
+        try:
+            data = await fetch_status(enrichment_id)
+            status = data.get("status")
+            if status == "FINISHED":
+                return data
+            if status in {"CANCELED", "CREDITS_INSUFFICIENT", "RATE_LIMIT", "UNKNOWN"}:
+                raise RuntimeError(f"Process failed with status: {status}")
+            await asyncio.sleep(interval)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 429:  # Handle rate limit
+                await asyncio.sleep(2 ** attempt)  # Exponential backoff
+            else:
+                raise
+        except Exception as e:
+            print(f"Error in wait_for_completion: {e}")
+            raise
+
 
 async def fetch_status(enrichment_id):
     url = f"https://app.fullenrich.com/api/v1/contact/enrich/bulk/{enrichment_id}"
     headers = {"Authorization": "Bearer 01ae77fa-f631-4ec5-9587-668422b39ec6"}
+
     async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=headers)
-        response.raise_for_status()
-        return response.json()
+        for attempt in range(MAX_RETRIES):
+            try:
+                response = await client.get(url, headers=headers)
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:  # Handle rate limit
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                else:
+                    raise
+            except Exception as e:
+                print(f"Error in fetch_status: {e}")
+                raise
+
+
+# async def get_contactInfo(employeeSearchResultList: List[EmployeeResultForm]):
+#     employeeContactInfoList = await asyncio.gather(
+#         *(fullenrich_bulk_request(employee=employee)
+#         for employee in employeeSearchResultList)
+#     )
+#     print(employeeContactInfoList)
+#     return employeeContactInfoList
+
+    
+
+# async def fullenrich_bulk_request(employee: EmployeeResultForm):
+#     bulk_url = "https://app.fullenrich.com/api/v1/contact/enrich/bulk"
+#     headers = {
+#         "Authorization": "Bearer 01ae77fa-f631-4ec5-9587-668422b39ec6",
+#         "Content-Type": "application/json"
+#     }
+#     payload = {
+#         "name": "LinkedIn Employee ContactInfo",
+#         # "webhook_url": "https://example.com/webhook",
+#         "datas": [
+#             {
+#                 "firstname": employee.get("first_name", ""),
+#                 "lastname": employee.get("last_name", ""),
+#                 "company_name": employee.get("company_name", ""),
+#                 "linkedin_url": employee.get("linkedinURL", ""),
+#                 # "firstname": employee.first_name,
+#                 # "lastname": employee.last_name,
+#                 # "company_name": employee.company_name,
+#                 # "linkedin_url": employee.linkedinURL,
+#                 "enrich_fields": ["contact.emails", "contact.phones"],
+#             }
+#         ]
+#     }
+#     async with httpx.AsyncClient() as client:
+#         response = await client.post(bulk_url, json=payload, headers=headers)
+#         # print(response.json())
+#         enrichment_id = response.json().get("enrichment_id")
+#         if not enrichment_id:
+#             raise ValueError("Enrichment ID not found in response")
+#         print(enrichment_id)
+
+#         response = await wait_for_completion(enrichment_id=enrichment_id)
+#         print("Here is response: ", response)
+#         datas = response.get("datas", [])
+#         print("Data: ", datas)
+
+#         for data in datas:
+#             contact_info = data.get("contact", {})
+#             emails = contact_info.get("emails", [])
+#             phones = contact_info.get("phones", [])
+#             return { 
+#                 "emails": emails,
+#                 "phones": phones
+#             }
+
+# async def wait_for_completion(enrichment_id, interval=5):
+#     while True:
+#         data = await fetch_status(enrichment_id)
+#         status = data.get("status")
+#         print(f"Current status: {status}")
+        
+#         if status == "FINISHED":
+#             print("Process finished successfully: ", data)
+#             return data  # Return the final data
+        
+#         if status in {"CANCELED", "CREDITS_INSUFFICIENT", "RATE_LIMIT", "UNKNOWN"}:
+#             raise RuntimeError(f"Process failed with status: {status}")
+        
+#         await asyncio.sleep(interval)
+
+# async def fetch_status(enrichment_id):
+#     url = f"https://app.fullenrich.com/api/v1/contact/enrich/bulk/{enrichment_id}"
+#     headers = {"Authorization": "Bearer 01ae77fa-f631-4ec5-9587-668422b39ec6"}
+#     async with httpx.AsyncClient() as client:
+#         response = await client.get(url, headers=headers)
+#         response.raise_for_status()
+#         return response.json()
